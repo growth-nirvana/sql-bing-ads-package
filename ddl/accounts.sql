@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS `{{target_dataset}}.accounts` (
+  BillToCustomerId INT64,
+  CurrencyCode STRING,
+  AccountFinancialStatus STRING,
+  Id INT64 NOT NULL,
+  Name STRING,
+  Number STRING,
+  ParentCustomerId INT64,
+  PaymentMethodId INT64,
+  PrimaryUserId INT64,
+  AccountLifeCycleStatus STRING,
+  TimeStamp STRING,
+  TimeZone STRING,
+  PauseReason INT64,
+  LinkedAgencies STRING,
+  BackUpPaymentInstrumentId INT64,
+  BusinessAddress STRING,
+  AutoTagType STRING,
+  LastModifiedTime TIMESTAMP,
+  tenant STRING,
+  _time_extracted TIMESTAMP,
+  _time_loaded TIMESTAMP
+); 
