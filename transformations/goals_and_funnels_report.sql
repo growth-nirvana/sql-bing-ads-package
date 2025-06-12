@@ -1,3 +1,4 @@
+-- goals_and_funnels_report
 -- Goals and Funnels Report Transformation
 {% assign target_dataset = vars.target_dataset_id %}
 {% assign target_table_id = 'goals_and_funnels_report' %}
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `{{target_dataset}}.{{target_table_id}}` (
   goal_type STRING,
   view_through_conversions STRING,
   date DATE,
+  run_id INT64,
   _gn_id STRING,
   _gn_synced TIMESTAMP
 );
@@ -96,6 +98,7 @@ BEGIN TRANSACTION;
     goal_type,
     view_through_conversions,
     date,
+    run_id,
     _gn_id,
     _gn_synced
   )
@@ -114,6 +117,7 @@ BEGIN TRANSACTION;
     GoalType,
     ViewThroughConversions,
     DATE(TimePeriod),
+    run_id,
     TO_HEX(SHA256(CONCAT(
       COALESCE(CAST(AccountId AS STRING), ''),
       COALESCE(CAST(CampaignId AS STRING), ''),
@@ -122,7 +126,7 @@ BEGIN TRANSACTION;
       COALESCE(CAST(GoalId AS STRING), ''),
       COALESCE(Goal, ''),
       COALESCE(DeviceType, ''),
-      COALESCE(TimePeriod, '')
+      COALESCE(CAST(TimePeriod AS STRING), '')
     ))) AS _gn_id,
     CURRENT_TIMESTAMP() AS _gn_synced
   FROM latest_batch;

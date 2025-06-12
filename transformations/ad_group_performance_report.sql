@@ -1,11 +1,12 @@
--- Ad Performance Report Transformation
+-- ad_group_performance_report
+-- Ad Group Performance Report Transformation
 {% assign target_dataset = vars.target_dataset_id %}
-{% assign target_table_id = 'ad_performance_report' %}
+{% assign target_table_id = 'ad_group_performance_report' %}
 
 {% assign source_dataset = vars.source_dataset_id %}
-{% assign source_table_id = 'stream_ad_performance_report' %}
+{% assign source_table_id = 'ad_group_performance_report' %}
 
-{% if vars.models.switchover_ad_performance_report.active == false %}
+{% if vars.models.switchover_ad_group_performance_report.active == false %}
 select 1
 {% else %}
 DECLARE min_date DATE;
@@ -26,7 +27,6 @@ IF table_exists THEN
 CREATE TABLE IF NOT EXISTS `{{target_dataset}}.{{target_table_id}}` (
   account_id INT64,
   campaign_id INT64,
-  ad_id INT64,
   ad_group_id INT64,
   currency_code STRING,
   ad_distribution STRING,
@@ -41,15 +41,28 @@ CREATE TABLE IF NOT EXISTS `{{target_dataset}}.{{target_table_id}}` (
   cost_per_conversion FLOAT64,
   device_type STRING,
   language STRING,
+  device_os STRING,
+  quality_score FLOAT64,
+  expected_ctr FLOAT64,
+  ad_relevance FLOAT64,
+  landing_page_experience FLOAT64,
+  historical_quality_score STRING,
+  historical_expected_ctr STRING,
+  historical_ad_relevance STRING,
+  historical_landing_page_experience STRING,
+  phone_impressions INT64,
+  phone_calls INT64,
   network STRING,
   top_vs_other STRING,
   bid_match_type STRING,
   delivered_match_type STRING,
-  device_os STRING,
   assists INT64,
   revenue FLOAT64,
   return_on_ad_spend FLOAT64,
+  cost_per_assist FLOAT64,
   revenue_per_conversion FLOAT64,
+  revenue_per_assist FLOAT64,
+  custom_parameters STRING,
   all_conversions STRING,
   all_revenue STRING,
   all_conversion_rate STRING,
@@ -58,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `{{target_dataset}}.{{target_table_id}}` (
   all_revenue_per_conversion STRING,
   view_through_conversions STRING,
   date DATE,
+  run_id INT64,
   _gn_id STRING,
   _gn_synced TIMESTAMP
 );
@@ -104,7 +118,6 @@ BEGIN TRANSACTION;
   INSERT INTO `{{target_dataset}}.{{target_table_id}}` (
     account_id,
     campaign_id,
-    ad_id,
     ad_group_id,
     currency_code,
     ad_distribution,
@@ -119,15 +132,28 @@ BEGIN TRANSACTION;
     cost_per_conversion,
     device_type,
     language,
+    device_os,
+    quality_score,
+    expected_ctr,
+    ad_relevance,
+    landing_page_experience,
+    historical_quality_score,
+    historical_expected_ctr,
+    historical_ad_relevance,
+    historical_landing_page_experience,
+    phone_impressions,
+    phone_calls,
     network,
     top_vs_other,
     bid_match_type,
     delivered_match_type,
-    device_os,
     assists,
     revenue,
     return_on_ad_spend,
+    cost_per_assist,
     revenue_per_conversion,
+    revenue_per_assist,
+    custom_parameters,
     all_conversions,
     all_revenue,
     all_conversion_rate,
@@ -136,13 +162,13 @@ BEGIN TRANSACTION;
     all_revenue_per_conversion,
     view_through_conversions,
     date,
+    run_id,
     _gn_id,
     _gn_synced
   )
   SELECT 
     AccountId,
     CampaignId,
-    AdId,
     AdGroupId,
     CurrencyCode,
     AdDistribution,
@@ -157,15 +183,28 @@ BEGIN TRANSACTION;
     CostPerConversion,
     DeviceType,
     Language,
+    DeviceOS,
+    QualityScore,
+    ExpectedCtr,
+    AdRelevance,
+    LandingPageExperience,
+    HistoricalQualityScore,
+    HistoricalExpectedCtr,
+    HistoricalAdRelevance,
+    HistoricalLandingPageExperience,
+    PhoneImpressions,
+    PhoneCalls,
     Network,
     TopVsOther,
     BidMatchType,
     DeliveredMatchType,
-    DeviceOS,
     Assists,
     Revenue,
     ReturnOnAdSpend,
+    CostPerAssist,
     RevenuePerConversion,
+    RevenuePerAssist,
+    CustomParameters,
     AllConversions,
     AllRevenue,
     AllConversionRate,
@@ -174,14 +213,14 @@ BEGIN TRANSACTION;
     AllRevenuePerConversion,
     ViewThroughConversions,
     DATE(TimePeriod),
+    run_id,
     TO_HEX(SHA256(CONCAT(
       COALESCE(CAST(AccountId AS STRING), ''),
       COALESCE(CAST(CampaignId AS STRING), ''),
-      COALESCE(CAST(AdId AS STRING), ''),
       COALESCE(CAST(AdGroupId AS STRING), ''),
       COALESCE(DeviceType, ''),
       COALESCE(Network, ''),
-      COALESCE(TimePeriod, '')
+      COALESCE(CAST(TimePeriod AS STRING), '')
     ))) AS _gn_id,
     CURRENT_TIMESTAMP() AS _gn_synced
   FROM latest_batch;

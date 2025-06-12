@@ -1,9 +1,10 @@
+-- account_history
 -- Account History SCD Type 2 Transformation
 {% assign target_dataset = vars.target_dataset_id %}
 {% assign target_table_id = 'account_history' %}
 
 {% assign source_dataset = vars.source_dataset_id %}
-{% assign source_table_id = 'stream_accounts' %}
+{% assign source_table_id = 'accounts' %}
 
 {% if vars.models.switchover_accounts_history.active == false %}
 select 1

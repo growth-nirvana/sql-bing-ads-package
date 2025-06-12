@@ -1,11 +1,12 @@
--- Campaigns History SCD Type 2 Transformation
+-- keyword_history
+-- Keywords History SCD Type 2 Transformation
 {% assign target_dataset = vars.target_dataset_id %}
-{% assign target_table_id = 'campaign_history' %}
+{% assign target_table_id = 'keyword_history' %}
 
 {% assign source_dataset = vars.source_dataset_id %}
-{% assign source_table_id = 'stream_campaigns' %}
+{% assign source_table_id = 'keywords' %}
 
-{% if vars.models.switchover_campaigns_history.active == false %}
+{% if vars.models.switchover_keywords_history.active == false %}
 select 1
 {% else %}
 DECLARE table_exists BOOL DEFAULT FALSE;
@@ -28,19 +29,10 @@ CREATE TABLE IF NOT EXISTS `{{target_dataset}}.{{target_table_id}}` (
   _gn_end TIMESTAMP,
   _gn_synced TIMESTAMP,
   updated_at TIMESTAMP,
-  audience_ads_bid_adjustment INT64,
-  bidding_scheme STRING,
-  budget_type STRING,
-  daily_budget FLOAT64,
-  experiment_id INT64,
-  name STRING,
-  status STRING,
-  time_zone STRING,
-  tracking_url_template STRING,
-  campaign_type STRING,
-  settings STRING,
-  budget_id INT64,
-  languages STRING,
+  bid STRING,
+  final_urls STRING,
+  match_type STRING,
+  text STRING,
   tenant STRING,
   _gn_id STRING
 );
@@ -58,34 +50,16 @@ SELECT
   CAST(NULL AS TIMESTAMP) AS _gn_end,
   CURRENT_TIMESTAMP() AS _gn_synced,
   _time_loaded AS updated_at,
-  AudienceAdsBidAdjustment AS audience_ads_bid_adjustment,
-  BiddingScheme AS bidding_scheme,
-  BudgetType AS budget_type,
-  DailyBudget AS daily_budget,
-  ExperimentId AS experiment_id,
-  Name AS name,
-  Status AS status,
-  TimeZone AS time_zone,
-  TrackingUrlTemplate AS tracking_url_template,
-  CampaignType AS campaign_type,
-  Settings AS settings,
-  BudgetId AS budget_id,
-  Languages AS languages,
+  Bid AS bid,
+  FinalUrls AS final_urls,
+  MatchType AS match_type,
+  Text AS text,
   tenant AS tenant,
   TO_HEX(SHA256(CONCAT(
-    COALESCE(CAST(AudienceAdsBidAdjustment AS STRING), ''),
-    COALESCE(BiddingScheme, ''),
-    COALESCE(BudgetType, ''),
-    COALESCE(CAST(DailyBudget AS STRING), ''),
-    COALESCE(CAST(ExperimentId AS STRING), ''),
-    COALESCE(Name, ''),
-    COALESCE(Status, ''),
-    COALESCE(TimeZone, ''),
-    COALESCE(TrackingUrlTemplate, ''),
-    COALESCE(CampaignType, ''),
-    COALESCE(Settings, ''),
-    COALESCE(CAST(BudgetId AS STRING), ''),
-    COALESCE(Languages, ''),
+    COALESCE(Bid, ''),
+    COALESCE(FinalUrls, ''),
+    COALESCE(MatchType, ''),
+    COALESCE(Text, ''),
     COALESCE(tenant, '')
   ))) AS _gn_id
 FROM base;
@@ -106,19 +80,10 @@ WHEN NOT MATCHED THEN
     _gn_end,
     _gn_synced,
     updated_at,
-    audience_ads_bid_adjustment,
-    bidding_scheme,
-    budget_type,
-    daily_budget,
-    experiment_id,
-    name,
-    status,
-    time_zone,
-    tracking_url_template,
-    campaign_type,
-    settings,
-    budget_id,
-    languages,
+    bid,
+    final_urls,
+    match_type,
+    text,
     tenant,
     _gn_id
   )
@@ -129,19 +94,10 @@ WHEN NOT MATCHED THEN
     _gn_end,
     _gn_synced,
     updated_at,
-    audience_ads_bid_adjustment,
-    bidding_scheme,
-    budget_type,
-    daily_budget,
-    experiment_id,
-    name,
-    status,
-    time_zone,
-    tracking_url_template,
-    campaign_type,
-    settings,
-    budget_id,
-    languages,
+    bid,
+    final_urls,
+    match_type,
+    text,
     tenant,
     _gn_id
   );

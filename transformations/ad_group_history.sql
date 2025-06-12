@@ -1,9 +1,10 @@
+-- ad_groups
 -- Ad Groups History SCD Type 2 Transformation
 {% assign target_dataset = vars.target_dataset_id %}
 {% assign target_table_id = 'ad_group_history' %}
 
 {% assign source_dataset = vars.source_dataset_id %}
-{% assign source_table_id = 'stream_ad_groups' %}
+{% assign source_table_id = 'ad_groups' %}
 
 {% if vars.models.switchover_ad_groups_history.active == false %}
 select 1
