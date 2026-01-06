@@ -4,7 +4,7 @@
 {% assign target_table_id = 'search_query_performance_report' %}
 
 {% assign source_dataset = vars.source_dataset_id %}
-{% assign source_table_id = 'stream_search_query_performance_report' %}
+{% assign source_table_id = 'search_query_performance_report' %}
 
 {% if vars.models.switchover_search_query_performance_report.active == false %}
 select 1

@@ -4,7 +4,7 @@
 {% assign target_table_id = 'keyword_performance_report' %}
 
 {% assign source_dataset = vars.source_dataset_id %}
-{% assign source_table_id = 'stream_keyword_performance_report' %}
+{% assign source_table_id = 'keyword_performance_report' %}
 
 {% if vars.models.switchover_keyword_performance_report.active == false %}
 select 1
