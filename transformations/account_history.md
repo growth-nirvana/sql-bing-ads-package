@@ -1,6 +1,6 @@
 # Account History Table
 
-This table implements a Slowly Changing Dimension (SCD) Type 2 pattern for Bing Ads accounts, tracking historical changes to account attributes over time. It maintains a complete history of account changes while providing an easy way to access the current state of each account.
+This table stores Bing Ads account data using a MERGE operation on the `id` field. The source table is truncated on each run, so all records from the source are upserted into the target table based on the account `id`.
 
 ## Table Structure
 
@@ -32,50 +32,28 @@ This table implements a Slowly Changing Dimension (SCD) Type 2 pattern for Bing 
 | tenant                     | STRING    | Tenant identifier (for multi-tenant environments)                           |
 | _gn_id                     | STRING    | Hash of key attributes used for change detection                            |
 
-## Change Detection
+## Data Loading
 
-The table uses a hash-based change detection mechanism (`_gn_id`) that includes:
-- bill_to_customer_id
-- currency_code
-- account_financial_status
-- name
-- number
-- parent_customer_id
-- payment_method_id
-- primary_user_id
-- account_life_cycle_status
-- time_stamp
-- time_zone
-- pause_reason
-- linked_agencies
-- back_up_payment_instrument_id
-- business_address
-- auto_tag_type
-- last_modified_time
-- tenant
+The table uses a MERGE operation that:
+- Matches records based on the `id` field
+- Updates all fields when a matching `id` is found
+- Inserts a new record when no matching `id` exists
 
-When any of these attributes change, a new version of the record is created with:
-- `_gn_start` set to the current timestamp
-- `_gn_active` set to TRUE
-- `_gn_end` set to NULL
-
-The previous version is updated with:
-- `_gn_active` set to FALSE
-- `_gn_end` set to the new version's `_gn_start`
+The `_gn_id` field is still generated as a hash of key attributes but is not used for change detection. The source table is truncated on each run by the singer tap, so all records from the source are processed in each ETL run.
 
 ## Usage
 
-- **Get current account state**: Filter where `_gn_active = TRUE`
-- **Track historical changes**: Query without the `_gn_active` filter to see all versions
-- **Point-in-time analysis**: Use `_gn_start` and `_gn_end` to see account state at any point in time
-- **Change analysis**: Compare different versions of the same account to see what changed and when
-- **Financial status tracking**: Monitor changes in `account_financial_status` and `account_life_cycle_status`
+- **Get account data**: Query by `id` to retrieve account information
+- **Account lookup**: Use the `id` field as the primary key for joining with other tables
+- **Financial status**: Monitor `account_financial_status` and `account_life_cycle_status`
 - **Hierarchical analysis**: Use `parent_customer_id` to analyze account relationships
+- **Account attributes**: Access all account attributes including billing, payment, and lifecycle information
 
 ## Notes
 
-- The table is updated incrementally, only processing new or changed records
+- The source table is truncated on each run by the singer tap, so all records are processed in each ETL run
 - A guard clause checks for source table existence before running ETL
-- All fields in the hash are cast to STRING to ensure consistent change detection
+- The MERGE operation ensures that each account `id` has only one record in the target table
 - The table maintains referential integrity with other Bing Ads tables through the `id` field
-- The `account_life_cycle_status` field is particularly useful for tracking account lifecycle changes 
+- The `_gn_id` field is generated but not used for change detection
+- The `account_life_cycle_status` field is useful for tracking account lifecycle information 

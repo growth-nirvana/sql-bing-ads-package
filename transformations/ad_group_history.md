@@ -1,6 +1,6 @@
 # Ad Group History Table
 
-This table implements a Slowly Changing Dimension (SCD) Type 2 pattern for Bing Ads ad groups, tracking historical changes to ad group attributes over time. It maintains a complete history of ad group changes while providing an easy way to access the current state of each ad group.
+This table stores Bing Ads ad group data using a MERGE operation on the `id` field. The source table is truncated on each run, so all records from the source are upserted into the target table based on the ad group `id`.
 
 ## Table Structure
 
@@ -26,45 +26,29 @@ This table implements a Slowly Changing Dimension (SCD) Type 2 pattern for Bing 
 | tenant               | STRING    | Tenant identifier (for multi-tenant environments)                           |
 | _gn_id               | STRING    | Hash of key attributes used for change detection                            |
 
-## Change Detection
+## Data Loading
 
-The table uses a hash-based change detection mechanism (`_gn_id`) that includes:
-- ad_rotation
-- bidding_scheme
-- cpc_bid
-- end_date
-- language
-- name
-- network
-- settings
-- start_date
-- status
-- url_custom_parameters
-- tenant
+The table uses a MERGE operation that:
+- Matches records based on the `id` field
+- Updates all fields when a matching `id` is found
+- Inserts a new record when no matching `id` exists
 
-When any of these attributes change, a new version of the record is created with:
-- `_gn_start` set to the current timestamp
-- `_gn_active` set to TRUE
-- `_gn_end` set to NULL
-
-The previous version is updated with:
-- `_gn_active` set to FALSE
-- `_gn_end` set to the new version's `_gn_start`
+The `_gn_id` field is still generated as a hash of key attributes but is not used for change detection. The source table is truncated on each run by the singer tap, so all records from the source are processed in each ETL run.
 
 ## Usage
 
-- **Get current ad group state**: Filter where `_gn_active = TRUE`
-- **Track historical changes**: Query without the `_gn_active` filter to see all versions
-- **Point-in-time analysis**: Use `_gn_start` and `_gn_end` to see ad group state at any point in time
-- **Change analysis**: Compare different versions of the same ad group to see what changed and when
-- **Bidding strategy analysis**: Monitor changes in `bidding_scheme` and `cpc_bid` over time
-- **Status tracking**: Track changes in ad group `status` to understand lifecycle changes
-- **Network performance**: Analyze changes in `network` settings and their impact on performance
+- **Get ad group data**: Query by `id` to retrieve ad group information
+- **Ad group lookup**: Use the `id` field as the primary key for joining with other tables
+- **Bidding strategy**: Access `bidding_scheme` and `cpc_bid` information
+- **Status tracking**: Monitor ad group `status` to understand current state
+- **Network settings**: Analyze `network` settings and their configuration
+- **Scheduling**: Use `start_date` and `end_date` to understand ad group scheduling
 
 ## Notes
 
-- The table is updated incrementally, only processing new or changed records
+- The source table is truncated on each run by the singer tap, so all records are processed in each ETL run
 - A guard clause checks for source table existence before running ETL
-- All fields in the hash are cast to STRING to ensure consistent change detection
+- The MERGE operation ensures that each ad group `id` has only one record in the target table
 - The table maintains referential integrity with other Bing Ads tables through the `id` field
-- The `status` field is particularly useful for tracking ad group lifecycle changes 
+- The `_gn_id` field is generated but not used for change detection
+- The `status` field is useful for tracking ad group state 

@@ -1,6 +1,6 @@
 # Keyword History Table
 
-This table implements a Slowly Changing Dimension (SCD) Type 2 pattern for Bing Ads keywords, tracking historical changes to keyword attributes over time. It maintains a complete history of keyword changes while providing an easy way to access the current state of each keyword.
+This table stores Bing Ads keyword data using a MERGE operation on the `id` field. The source table is truncated on each run, so all records from the source are upserted into the target table based on the keyword `id`.
 
 ## Table Structure
 
@@ -19,39 +19,29 @@ This table implements a Slowly Changing Dimension (SCD) Type 2 pattern for Bing 
 | tenant        | STRING    | Tenant identifier (for multi-tenant environments)                           |
 | _gn_id        | STRING    | Hash of key attributes used for change detection                            |
 
-## Change Detection
+## Data Loading
 
-The table uses a hash-based change detection mechanism (`_gn_id`) that includes:
-- bid
-- final_urls
-- match_type
-- text
-- tenant
+The table uses a MERGE operation that:
+- Matches records based on the `id` field
+- Updates all fields when a matching `id` is found
+- Inserts a new record when no matching `id` exists
 
-When any of these attributes change, a new version of the record is created with:
-- `_gn_start` set to the current timestamp
-- `_gn_active` set to TRUE
-- `_gn_end` set to NULL
-
-The previous version is updated with:
-- `_gn_active` set to FALSE
-- `_gn_end` set to the new version's `_gn_start`
+The `_gn_id` field is still generated as a hash of key attributes but is not used for change detection. The source table is truncated on each run by the singer tap, so all records from the source are processed in each ETL run.
 
 ## Usage
 
-- **Get current keyword state**: Filter where `_gn_active = TRUE`
-- **Track historical changes**: Query without the `_gn_active` filter to see all versions
-- **Point-in-time analysis**: Use `_gn_start` and `_gn_end` to see keyword state at any point in time
-- **Change analysis**: Compare different versions of the same keyword to see what changed and when
-- **Bid tracking**: Monitor changes in `bid` amounts over time
-- **Match type analysis**: Track changes in `match_type` to understand keyword targeting evolution
-- **URL tracking**: Monitor changes in `final_urls` for destination changes
-- **Keyword text analysis**: Track changes in `text` to understand keyword modifications
+- **Get keyword data**: Query by `id` to retrieve keyword information
+- **Keyword lookup**: Use the `id` field as the primary key for joining with other tables
+- **Bid information**: Access `bid` amounts for keyword bidding analysis
+- **Match type**: Check `match_type` to understand keyword targeting (Exact, Phrase, Broad)
+- **URL tracking**: Access `final_urls` for destination information
+- **Keyword text**: Review `text` field for keyword content
 
 ## Notes
 
-- The table is updated incrementally, only processing new or changed records
+- The source table is truncated on each run by the singer tap, so all records are processed in each ETL run
 - A guard clause checks for source table existence before running ETL
-- All fields in the hash are cast to STRING to ensure consistent change detection
+- The MERGE operation ensures that each keyword `id` has only one record in the target table
 - The table maintains referential integrity with other Bing Ads tables through the `id` field
-- The `match_type` field is particularly useful for tracking keyword targeting changes 
+- The `_gn_id` field is generated but not used for change detection
+- The `match_type` field is useful for understanding keyword targeting configuration 
