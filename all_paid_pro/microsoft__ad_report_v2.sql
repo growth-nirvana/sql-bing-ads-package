@@ -89,9 +89,9 @@ CREATE OR REPLACE TABLE
                           , account_id
                           , ad_group_id
                           , campaign_id
-                          , all_conversions -- This is what we are going to sum in our pivot table
-                          , all_revenue  -- This is what we are going to sum in our pivot table
-                          , view_through_conversions  -- This is what we are going to sum in our pivot table
+                          , SAFE_CAST(all_conversions AS FLOAT64) as all_conversions -- This is what we are going to sum in our pivot table
+                          , SAFE_CAST(all_revenue AS FLOAT64) as all_revenue  -- This is what we are going to sum in our pivot table
+                          , SAFE_CAST(view_through_conversions AS FLOAT64) as view_through_conversions  -- This is what we are going to sum in our pivot table
                           , goal
                       from
                           {{source_dataset_id}}.goals_and_funnels_report

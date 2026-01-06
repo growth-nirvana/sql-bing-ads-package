@@ -4,7 +4,7 @@
 {% assign target_table_id = 'goals_and_funnels_report' %}
 
 {% assign source_dataset = vars.source_dataset_id %}
-{% assign source_table_id = 'stream_goals_and_funnels_report' %}
+{% assign source_table_id = 'goals_and_funnels_report' %}
 
 {% if vars.models.switchover_goals_and_funnels_report.active == false %}
 select 1
